@@ -4,15 +4,15 @@ import torch as t
 from matplotlib import pyplot as plt
 
 
-# 构建input x和ture值,并为true添加一定的噪声
+# 构建待预测数据,添加一定的噪声
 def target_data(x):
     t.manual_seed(1000)  # 设置pytorch随机数种子
-    y = 3 * x**3 + 2 * x**2 + x + 4 + t.randn(x.size()) * 0.2
+    y = 3 * x**3 + 2 * x**2 + x + 0.4 * t.randn(x.size())
     return y
 
 
 # 预测模型
-def pred_mode(x, a0, a1, a2, a3):
+def pred_model(x, a0, a1, a2, a3):
     return a0 + a1 * x + a2 * x**2 + a3 * x**3
 
 
@@ -24,16 +24,16 @@ def train(x, y):
     a3 = t.rand(1, requires_grad=True)
 
     # 构建loss
-    y_pred = pred_mode(x, a0, a1, a2, a3)
+    y_pred = pred_model(x, a0, a1, a2, a3)
     loss = t.sum(0.5 * (y_pred - y) ** 2)
 
     # 迭代求参数
     lr = 0.001
     for _ in range(1000):
-        y_pred = pred_mode(x, a0, a1, a2, a3)
+        print((a0, a1, a2, a3))
+        y_pred = pred_model(x, a0, a1, a2, a3)
         loss = t.sum(0.5 * (y_pred - y) ** 2)
         loss.backward()
-
         with t.no_grad():
             a0 -= lr * a0.grad
             a1 -= lr * a1.grad
@@ -54,13 +54,19 @@ if __name__ == "__main__":
 
     # 训练模型
     a0, a1, a2, a3 = train(x, y)
-    print(a0)
-    print(a1)
-    print(a2)
-    print(a3)
+    # print(a0)
+    # print(a1)
+    # print(a2)
+    # print(a3)
+
+    y_new = pred_model(x, a0, a1, a2, a3)
 
     # 可视化
-    plt.scatter(x, y)
-    pre_y = pred_mode(x, a0, a1, a2, a3)
-    plt.plot(x, pre_y.detach(), "b")
+    plt.figure(figsize=(16, 9))
+    plt.title("Predict Model")
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.scatter(x, y, color="blue")
+    plt.plot(x, y_new.detach().numpy(), color="red", label="predict")
+    plt.legend()
     plt.show()
